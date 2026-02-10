@@ -7,16 +7,16 @@ from datetime import datetime, timezone
 import threading
 from threading import Thread
 import sqlite3
+from api_key import API_TOKEN
 from datetime import datetime, timedelta
 
-API_TOKEN = '7228738609:AAFh2se9lEsmLbM60njMR0tsKHeBq-znfmQ'
 
 bot = telebot.TeleBot(API_TOKEN)
 bot.delete_webhook()
 
-gameName = "Sushioner"
-#gameUrl = "https://academik2006.github.io/SushionerGameFront/"
-gameUrl = "https://gameofmay.ru/"
+gameName = "Spring Quiz Galeria Sushi"
+gameUrl = "https://academik2006.github.io/8martGSGameFront/"
+#gameUrl = "https://gameofmay.ru/"
 bronzeMap = None
 silverMap = None
 goldMap = None
