@@ -355,7 +355,7 @@ def send_daily_reminder():
 def run_timer():
     while True:
         send_daily_reminder()
-        time.sleep(60)  # Проверять каждую минуту
+        time.sleep(600)  # Проверять каждые 10 минут
 
 # Запускаем таймер в отдельном потоке
 timer_thread = threading.Thread(target=run_timer)
