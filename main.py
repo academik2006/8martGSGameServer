@@ -5,7 +5,6 @@ import aiofiles
 import time
 from datetime import datetime, timezone
 import threading
-from threading import Thread
 import sqlite3
 from api_key import API_TOKEN
 from datetime import datetime, timedelta
@@ -24,6 +23,7 @@ filenamebronze = 'bronze.txt'
 filenamesilver = 'silver.txt'
 filenamegold = 'gold.txt'
 MAX_REMAINING_ATTEMPTS = 3
+blocked_users = set()
 
 
 def set_global_bronzeMap(value):
@@ -278,21 +278,19 @@ def answer(webAppMes):
 def sendKeyboard (remaining_attempts, webAppMes):
     
     if remaining_attempts == 0:
-            fail_text = """ 
+        fail_text = """ 
 Сегодня ты уже блистал(а)!
 Новая попытка – завтра. Немного интриги еще никому не вредило
 <b>Акулёнок</b> напомнит тебе, когда игра снова будет доступна"""  
                
-            bot.send_message(webAppMes.chat.id, fail_text, reply_markup=create_webapp_keyboard(False), parse_mode="HTML")        
+        bot.send_message(webAppMes.chat.id, fail_text, reply_markup=create_webapp_keyboard(False), parse_mode="HTML")        
     else:
-            attempts_left_text = f""" 
+        attempts_left_text = f""" 
 У тебя еще остался шанс улучшить результат сегодня. Жми кнопку "Можно играть" снова. 
 """  
-            bot.send_message(webAppMes.chat.id, attempts_left_text, reply_markup=create_webapp_keyboard(False), parse_mode="HTML")        
-
+        bot.send_message(webAppMes.chat.id, attempts_left_text, reply_markup=create_webapp_keyboard(False), parse_mode="HTML")        
 
 def record_game_loss(user_id):
-
     
     conn = sqlite3.connect('users.db')
     cursor = conn.cursor()
@@ -343,10 +341,18 @@ def send_daily_reminder():
 Заходи в игру и испытай удачу"""
     
     for chat_id in ready_users:
+        
+        if chat_id in blocked_users:
+            continue        
         try:
+	        # Пропускаем заблокированного пользователя        
             bot.send_message(chat_id, dailyReminderText, parse_mode="HTML")
         except Exception as e:
-            print(f"Произошла ошибка при отправке сообщения пользователю {chat_id}: {e}")
+            if 'User has blocked this bot' in str(e):
+                blocked_users.add(chat_id)
+                print(f"Пользователь {chat_id} добавлен в список заблокированных")            
+            else:
+                print(f"Произошла ошибка при отправке сообщения пользователю {chat_id}: {e}")                            
     
     current_time = datetime.now()
     print(f"{current_time} - Напоминание отправлено.")
