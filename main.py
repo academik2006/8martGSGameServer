@@ -16,7 +16,7 @@ bot.delete_webhook()
 
 gameName = "Spring Quiz Galeria Sushi"
 gameUrl = "https://academik2006.github.io/8martGSGameFront/"
-#gameUrl = "https://gameofmay.ru/"
+#gameUrl = "https://www.advent-sm.ru/"
 bronzeMap = None
 silverMap = None
 goldMap = None
