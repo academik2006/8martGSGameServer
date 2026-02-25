@@ -14,8 +14,8 @@ bot = telebot.TeleBot(API_TOKEN)
 bot.delete_webhook()
 
 gameName = "Spring Quiz Galeria Sushi"
-gameUrl = "https://academik2006.github.io/8martGSGameFront/"
-#gameUrl = "https://www.advent-sm.ru/"
+#gameUrl = "https://academik2006.github.io/8martGSGameFront/"
+gameUrl = "https://www.advent-sm.ru/"
 bronzeMap = None
 silverMap = None
 goldMap = None
@@ -97,7 +97,9 @@ rules_text = """
 Тот, кто правильно ответит на <b>10-й вопрос</b>, заберет главный приз – 300 бонусных рублей от Мира Суши 🍣🥢. 
 """
 
-conditions_text = """<b> *Чтобы активировать призовые баллы, не забудь использовать индивидуальный промокод в момент оформления заказа до 30.06.2025 г. Оформи заказ в Суши Мастер и Все получится.</b>
+conditions_text = """
+<b> *Чтобы активировать призовые баллы, не забудь использовать индивидуальный промокод в момент оформления заказа до 30.04.2026 г. 
+Открой для себя Мир Суши! </b> <a href="https://mirsushi.com/?utm_source=tg&utm_medium=game-mart">Мир суши</a> 
 """
 
 @bot.message_handler(commands=['start']) #обрабатываем команду старт
@@ -279,9 +281,11 @@ def sendKeyboard (remaining_attempts, webAppMes):
     
     if remaining_attempts == 0:
         fail_text = """ 
-Сегодня ты уже блистал(а)!
-Новая попытка – завтра. Немного интриги еще никому не вредило
-<b>Акулёнок</b> напомнит тебе, когда игра снова будет доступна"""  
+✨ Сегодня ты уже блистал(а)! 
+🌟Новая попытка – завтра. 
+Немного интриги еще никому не вредило!  
+
+<b>Акулёнок</b> 🦈 напомнит тебе, когда игра снова будет доступна."""  
                
         bot.send_message(webAppMes.chat.id, fail_text, reply_markup=create_webapp_keyboard(False), parse_mode="HTML")        
     else:
@@ -312,22 +316,20 @@ def record_game_loss(user_id):
     
 
 def getPromo(webAppMes, my_map, filename,level):
-    common_text = """
-<b>*Чтобы активировать призовые баллы, не забудь использовать индивидуальный промокод в момент оформления заказа до 30.06.2025 г. Оформи заказ в Суши Мастер и </b><a href="https://sushi-master.ru/?utm_source=tg&utm_medium=game-may">получится</a>.
-"""    
+    
     if level == "золото":
-        conditions_text_short = "300 бонусных балов!"
+        conditions_text_short = "300 бонусных балов при заказе от 300 р!"
     elif level == "серебро":        
-        conditions_text_short = "160 бонусных балов!"
+        conditions_text_short = "200 бонусных балов при заказе от 300 р!"
     elif level == "бронза":
-        conditions_text_short = "80 бонусных балов!"    
+        conditions_text_short = "100 бонусных баллов при заказе от 300 р!"    
 
     sizeMap = len(my_map)
     element = my_map[sizeMap-1]    
     image_path = 'logo_main.png'      
     with open(image_path, 'rb') as photo_file:
         bot.send_photo(webAppMes.chat.id, photo=photo_file, caption=f"Твой промокод {element} на {conditions_text_short}",parse_mode="HTML")         
-    bot.send_message(webAppMes.chat.id, common_text, parse_mode="HTML")   
+    bot.send_message(webAppMes.chat.id, conditions_text, parse_mode="HTML")   
     my_map.pop(sizeMap-1)
     write_map_to_file(filename, my_map)  
 
@@ -335,10 +337,10 @@ def getPromo(webAppMes, my_map, filename,level):
 def send_daily_reminder():    
     ready_users = reset_attempts_and_get_ready_users()   # Получаем список пользователей, готовых к игре
     dailyReminderText = """
-Акулёнок напоминает: 
-<b>"Cвежая порция вопросов на 8 марта ждёт тебя".</b> 
-Не упусти шанс пополнить свои бонусные "запасы". 
-Заходи в игру и испытай удачу"""
+🎉 Акулёнок напоминает:
+<b>"Свежая порция вопросов на 8 марта ждёт тебя".</b> 😊 ✨
+Не упусти шанс пополнить свои бонусные "запасы". ⚡️
+Заходи в игру и испытай удачу! 🎲 💥"""
     
     for chat_id in ready_users:
         
