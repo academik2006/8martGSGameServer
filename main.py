@@ -328,8 +328,11 @@ def getPromo(webAppMes, my_map, filename,level):
     sizeMap = len(my_map)
     element = my_map[sizeMap-1]    
     image_path = 'logo_main.png'      
+    
     with open(image_path, 'rb') as photo_file:
-        bot.send_photo(webAppMes.chat.id, photo=photo_file, caption=f"Твой промокод {element} на {conditions_text_short}",parse_mode="HTML")         
+        bot.send_photo(webAppMes.chat.id, photo=photo_file, parse_mode="HTML")         
+    
+    bot.send_message(webAppMes.chat.id, f"Твой промокод {element} на {conditions_text_short}", parse_mode="HTML")       
     bot.send_message(webAppMes.chat.id, conditions_text, parse_mode="HTML")   
     my_map.pop(sizeMap-1)
     write_map_to_file(filename, my_map)  
