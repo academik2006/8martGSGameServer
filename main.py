@@ -107,8 +107,9 @@ def start_fun(message):
     username = message.from_user.first_name 
     add_user_on_start(message.from_user.id, message.chat.id)      
     welcome_text = f"""
-    Добро пожаловать в интеллектуальное путешествие! 🚀✨
-    Весенний квиз от Миры Суши – это игра в формате «Кто хочет стать миллионером?» 🎬, но с праздничным настроением и женской логикой (она существует, мы проверяли 😉)!
+Добро пожаловать в интеллектуальное путешествие! 🚀✨
+
+Весенний квиз от Мира Суши – это игра в формате «Кто хочет стать миллионером?» 🎬, но с праздничным настроением и женской логикой (она существует, мы проверяли 😉)!
 """ 
     bot.send_message(message.chat.id, welcome_text, reply_markup=create_webapp_keyboard(False), parse_mode="HTML")        
    
