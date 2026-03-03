@@ -5,6 +5,7 @@ import aiofiles
 import time
 from datetime import datetime, timezone
 import threading
+import logging
 import sqlite3
 from api_key import API_TOKEN
 from datetime import datetime, timedelta
@@ -24,6 +25,9 @@ filenamesilver = 'silver.txt'
 filenamegold = 'gold.txt'
 MAX_REMAINING_ATTEMPTS = 3
 blocked_users = set()
+
+logging.basicConfig(level=logging.INFO)  
+logger = logging.getLogger(__name__)
 
 
 def set_global_bronzeMap(value):
@@ -183,7 +187,9 @@ def add_user_on_start(user_id, chat_id):
             )  
         
         conn.commit()
+        logger.info(f"Добавлен новый пользователь в базу данных {user_id}")
     else:
+        logger.info(f"Пользователь {user_id} уже есть в базе")
         return
     
     conn.close()
@@ -206,9 +212,7 @@ def time_remaining_for_play(user_id):
     # Рассчитываем разницу
     next_available_time = last_played_aware + timedelta(days=1)
     time_left = next_available_time - current_time_utc
-    
-    print(f"Разница времени {time_left}")
-
+        
     # Проверяем длительность оставшегося времени
     if time_left.total_seconds() <= 60:
         cursor.execute("UPDATE users SET attempts_left = 3 WHERE user_id = ?", (user_id,))
@@ -255,6 +259,7 @@ def reset_attempts_and_get_ready_users():
             ready_users.append(chat_id)
 
     conn.close()    
+    logger.info(f"В списке пользователей, готовых к игре {len(ready_users)} пользователей")    
     return ready_users
 
   
@@ -336,10 +341,13 @@ def getPromo(webAppMes, my_map, filename,level):
     bot.send_message(webAppMes.chat.id, conditions_text, parse_mode="HTML")   
     my_map.pop(sizeMap-1)
     write_map_to_file(filename, my_map)  
+    logger.info(f"Отправлен промокод уровня {level} пользователю {webAppMes.chat.id}")    
 
 # Функция для отправки сообщения всем пользователям
-def send_daily_reminder():    
+def send_daily_reminder():
+    logger.info(f"Функция send_daily_reminder запущена")        
     ready_users = reset_attempts_and_get_ready_users()   # Получаем список пользователей, готовых к игре
+    
     dailyReminderText = """
 🎉 Акулёнок напоминает:
 <b>"Свежая порция вопросов на 8 марта ждёт тебя".</b> 😊 ✨
@@ -353,16 +361,15 @@ def send_daily_reminder():
         try:
 	        # Пропускаем заблокированного пользователя        
             bot.send_message(chat_id, dailyReminderText, parse_mode="HTML")
+            current_time = datetime.now()
+            logger.info(f"Отправлено напоминание в {current_time} пользователю {chat_id}")    
         except Exception as e:
             if 'User has blocked this bot' in str(e):
                 blocked_users.add(chat_id)
-                print(f"Пользователь {chat_id} добавлен в список заблокированных")            
+                logger.info(f"Пользователь {chat_id} добавлен в список заблокированных")            
             else:
-                print(f"Произошла ошибка при отправке сообщения пользователю {chat_id}: {e}")                            
+                logger.info(f"Произошла ошибка при отправке сообщения пользователю {chat_id}: {e}")                               
     
-    current_time = datetime.now()
-    print(f"{current_time} - Напоминание отправлено.")
-
 # Функция для запуска таймера
 def run_timer():
     while True:
