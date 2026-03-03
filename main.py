@@ -214,7 +214,7 @@ def time_remaining_for_play(user_id):
     current_time_utc = datetime.now(timezone.utc)
 
     # Рассчитываем разницу
-    next_available_time = last_played_aware + timedelta(minutes=10)
+    next_available_time = last_played_aware + timedelta(days=1)
     time_left = next_available_time - current_time_utc
         
     # Проверяем длительность оставшегося времени
@@ -227,8 +227,11 @@ def time_remaining_for_play(user_id):
         hours_left = int(time_left.total_seconds() // 3600)
         minutes_left = int((time_left.total_seconds() % 3600) // 60)
         # Формируем текст уведомления
-        message_text = f'На сегодня достаточно подвигов.Отдохни, закажи роллы и возвращайся завтра – мы будем ждать. Следующий запуск игры будет доступен через {hours_left} часов и {minutes_left} минут. Акулёнок пришлет напоминание.'
-        
+        message_text = f"""
+✨ На сегодня достаточно подвигов. 
+🌟 Отдохни, закажи роллы 🍣 и возвращайся завтра – мы будем ждать. 
+Следующий запуск игры будет доступен через {hours_left} 🕑 часов и {minutes_left} 🕐 минут. 
+Акулёнок пришлет напоминание. 🦈"""        
     conn.close()    
     return message_text
     
@@ -245,6 +248,8 @@ def reset_attempts_and_get_ready_users():
     try:
         cursor.execute("SELECT user_id, chat_id, last_played, attempts_left FROM users")
         rows = cursor.fetchall()
+
+        logger.info(f"При запросе к базе получили записи {rows} пользователей.")
         
 
         for row in rows:
@@ -260,7 +265,7 @@ def reset_attempts_and_get_ready_users():
             if now_utc >= last_played + timedelta(days=1) and attempts_left == 0:
                 cursor.execute("UPDATE users SET attempts_left = 3 WHERE user_id = ?", (user_id,))                
                 ready_users.append(chat_id)
-        conn.commit()            
+                conn.commit()            
         
     except Exception as e:
         logger.error(f'Ошибка при выполнении запроса получения списка готовых к игре пользователей: {e}')
@@ -383,8 +388,6 @@ def send_daily_reminder():
                 logger.warning(f"Пользователь {chat_id} добавил бот в черный список и теперь считается заблокированным")
             else:
                 logger.error(f"Ошибка при отправке сообщения пользователю {chat_id}: {error_message}")
-
-send_daily_reminder()                           
     
 # Функция для запуска таймера
 def run_timer():
@@ -394,7 +397,7 @@ def run_timer():
         except Exception as e:
             logger.error(f'Ошибка при попытке закуска функции send_daily_reminder в основном цикле: {e}')
 
-        time.sleep(60)  # Проверять каждые 10 минут    
+        time.sleep(600)  # Проверять каждые 10 минут    
 
 # Запускаем таймер в отдельном потоке
 timer_thread = threading.Thread(target=run_timer)
