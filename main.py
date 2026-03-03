@@ -124,11 +124,13 @@ def handle_test_game_start(message):
     remaining_attempts = get_remaining_attempts(user_id)
 
     if remaining_attempts == 0:
-        bot.send_message(message.chat.id, time_remaining_for_play(user_id))        
+        bot.send_message(message.chat.id, time_remaining_for_play(user_id))
+        logger.info(f"Пользователь {message.chat.id} нажал кнопку можно поиграть и ему пришло нельзя и время ожидания {time_remaining_for_play(user_id)}")            
     else:
         remaining_attempts_text = 'шанс' if remaining_attempts == 1 else 'шанса'
         remaining_attempts_before_text = 'остался' if remaining_attempts == 1 else 'осталось'
         bot.send_message(message.chat.id, f'Ура! Сегодня у тебя {remaining_attempts_before_text} еще {remaining_attempts} {remaining_attempts_text}. Для запуска игры жми кнопку "Начать игру". Удачи', reply_markup=create_webapp_keyboard(True), parse_mode="HTML")                          
+        logger.info(f"Пользователь {message.chat.id} нажал кнопку можно поиграть и ему пришло можно")            
 
 @bot.message_handler(commands=['iaposhka']) #обрабатываем команду iaposhka
 def start_fun(message):
@@ -140,10 +142,12 @@ def start_fun(message):
 @bot.message_handler(func=lambda message: message.text == 'Правила игры')
 def handle_game_rules(message):        
     bot.send_message(message.chat.id, rules_text, parse_mode="HTML")
+    logger.info(f"Пользователь {message.chat.id} нажал кнопку правила игры")            
 
 @bot.message_handler(func=lambda message: message.text == 'Условия акции')
 def handle_promotion_conditions(message):
     bot.send_message(message.chat.id, conditions_text, parse_mode="HTML")
+    logger.info(f"Пользователь {message.chat.id} нажал кнопку условия акции")            
 
 def get_remaining_attempts(user_id):
     try:
@@ -378,8 +382,12 @@ def send_daily_reminder():
 # Функция для запуска таймера
 def run_timer():
     while True:
-        send_daily_reminder()
-        time.sleep(600)  # Проверять каждые 10 минут
+        try:
+            send_daily_reminder()            
+        except Exception as e:
+            logger.error(f'Ошибка при попытке закуска функции send_daily_reminder в основном цикле: {e}')
+
+        time.sleep(600)  # Проверять каждые 10 минут    
 
 # Запускаем таймер в отдельном потоке
 timer_thread = threading.Thread(target=run_timer)
