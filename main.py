@@ -236,31 +236,36 @@ def reset_attempts_and_get_ready_users():
 
     # Получаем текущее время в UTC
     now_utc = datetime.now(timezone.utc)
-
-    # Запрашиваем список всех пользователей
-    cursor.execute("SELECT user_id, chat_id, last_played, attempts_left FROM users")
-    rows = cursor.fetchall()
-
     ready_users = []  # Список пользователей, готовых к игре
 
-    for row in rows:
-        user_id = row[0]
-        chat_id = row[1]
-        last_played_str = row[2]
-        attempts_left = row[3]
+    try:
+        cursor.execute("SELECT user_id, chat_id, last_played, attempts_left FROM users")
+        rows = cursor.fetchall()
+        
 
-        # Приводим last_played к объекту datetime и задаём UTC-временную зону
-        last_played = datetime.strptime(last_played_str, '%Y-%m-%d %H:%M:%S').replace(tzinfo=timezone.utc)
+        for row in rows:
+            user_id = row[0]
+            chat_id = row[1]
+            last_played_str = row[2]
+            attempts_left = row[3]
 
-        # Определяем состояние игрока
-        if now_utc >= last_played + timedelta(days=1) and attempts_left == 0:
-            cursor.execute("UPDATE users SET attempts_left = 3 WHERE user_id = ?", (user_id,))
-            conn.commit()
-            ready_users.append(chat_id)
+            # Приводим last_played к объекту datetime и задаём UTC-временную зону
+            last_played = datetime.strptime(last_played_str, '%Y-%m-%d %H:%M:%S').replace(tzinfo=timezone.utc)
 
-    conn.close()    
-    logger.info(f"В списке пользователей, готовых к игре {len(ready_users)} пользователей")    
-    return ready_users
+            # Определяем состояние игрока
+            if now_utc >= last_played + timedelta(days=1) and attempts_left == 0:
+                cursor.execute("UPDATE users SET attempts_left = 3 WHERE user_id = ?", (user_id,))                
+                ready_users.append(chat_id)
+        conn.commit()            
+        
+    except Exception as e:
+        logger.error(f'Ошибка при выполнении запроса получения списка готовых к игре пользователей: {e}')
+        raise        
+    finally:
+        conn.close()
+    
+    logger.info(f"В списке пользователей, готовых к игре {len(ready_users)} пользователей.")
+    return ready_users    
 
   
 @bot.message_handler(content_types="web_app_data") #получаем отправленные данные 
