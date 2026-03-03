@@ -214,7 +214,7 @@ def time_remaining_for_play(user_id):
     current_time_utc = datetime.now(timezone.utc)
 
     # Рассчитываем разницу
-    next_available_time = last_played_aware + timedelta(days=1)
+    next_available_time = last_played_aware + timedelta(minutes=10)
     time_left = next_available_time - current_time_utc
         
     # Проверяем длительность оставшегося времени
@@ -354,30 +354,37 @@ def getPromo(webAppMes, my_map, filename,level):
 
 # Функция для отправки сообщения всем пользователям
 def send_daily_reminder():
-    logger.info(f"Функция send_daily_reminder запущена")        
-    ready_users = reset_attempts_and_get_ready_users()   # Получаем список пользователей, готовых к игре
+    logger.info("Функция send_daily_reminder запущена")
     
+    # Получаем список пользователей, готовых к игре
+    ready_users = reset_attempts_and_get_ready_users()
+
     dailyReminderText = """
 🎉 Акулёнок напоминает:
 <b>"Свежая порция вопросов на 8 марта ждёт тебя".</b> 😊 ✨
 Не упусти шанс пополнить свои бонусные "запасы". ⚡️
 Заходи в игру и испытай удачу! 🎲 💥"""
-    
+
+    # Отправляем уведомление каждому пользователю
     for chat_id in ready_users:
-        
         if chat_id in blocked_users:
-            continue        
+            logger.info(f"Пропущен заблокированный пользователь {chat_id}")
+            continue
+        
         try:
-	        # Пропускаем заблокированного пользователя        
+            # Отправляем сообщение пользователю
             bot.send_message(chat_id, dailyReminderText, parse_mode="HTML")
-            current_time = datetime.now()
-            logger.info(f"Отправлено напоминание в {current_time} пользователю {chat_id}")    
+            current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            logger.info(f"Напоминание отправлено в {current_time}, пользователю {chat_id}")
         except Exception as e:
-            if 'User has blocked this bot' in str(e):
+            error_message = str(e)
+            if 'User has blocked this bot' in error_message:
                 blocked_users.add(chat_id)
-                logger.info(f"Пользователь {chat_id} добавлен в список заблокированных")            
+                logger.warning(f"Пользователь {chat_id} добавил бот в черный список и теперь считается заблокированным")
             else:
-                logger.info(f"Произошла ошибка при отправке сообщения пользователю {chat_id}: {e}")                               
+                logger.error(f"Ошибка при отправке сообщения пользователю {chat_id}: {error_message}")
+
+send_daily_reminder()                           
     
 # Функция для запуска таймера
 def run_timer():
@@ -387,7 +394,7 @@ def run_timer():
         except Exception as e:
             logger.error(f'Ошибка при попытке закуска функции send_daily_reminder в основном цикле: {e}')
 
-        time.sleep(600)  # Проверять каждые 10 минут    
+        time.sleep(60)  # Проверять каждые 10 минут    
 
 # Запускаем таймер в отдельном потоке
 timer_thread = threading.Thread(target=run_timer)
