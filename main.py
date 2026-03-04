@@ -247,10 +247,7 @@ def reset_attempts_and_get_ready_users():
 
     try:
         cursor.execute("SELECT user_id, chat_id, last_played, attempts_left FROM users")
-        rows = cursor.fetchall()
-
-        logger.info(f"При запросе к базе получили записи {rows} пользователей.")
-        
+        rows = cursor.fetchall()                
 
         for row in rows:
             user_id = row[0]
